@@ -19,7 +19,7 @@ Cromeブラウザを使ってくれると嬉しい。
 
 ReactとTailwindCSSを使用しています。  
 *ChatGPT-5を使用しています。*  
-(ここからプロンプトを確認できます。)[https://chatgpt.com/share/6904e78d-bd78-800c-82b4-db705e6a850f]
+[ここからプロンプトを確認できます。](https://chatgpt.com/share/6904e78d-bd78-800c-82b4-db705e6a850f)
 
 ## 更新履歴
 
