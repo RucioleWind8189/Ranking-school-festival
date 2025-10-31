@@ -6,45 +6,60 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500&display=swap"
+      rel="stylesheet"
+    />
+
     <style>
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+        font-family: "M PLUS Rounded 1c", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
         background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
         margin: 0;
+        overflow: hidden;
       }
+
+      .container {
+        position: relative;
+      }
+
       .card {
-        background: rgba(255,255,255,0.9);
-        padding: 60px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 80px;
         border-radius: 40px;
         box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
-        width: 1200px;
+        width: 1600px;
+        height: 900px;
         text-align: center;
       }
 
-      h2{
-        font-size: 48px;
-        margin-bottom: 40px;
+      h2 {
+        font-size: 64px;
+        margin-bottom: 50px;
       }
 
       li {
-        font-size: 36px;
-        margin-bottom: 40;
+        font-size: 40px;
+        margin: 30px 0;
       }
 
       p {
-        font-size: 28px;
-        margin: 20px 0;
+        font-size: 32px;
+        margin: 30px 0;
       }
 
-      input, button {
-        margin: 10px 0;
-        padding: 16px;
+      input,
+      button {
+        margin: 15px 0;
+        padding: 20px;
         width: 80%;
-        font-size: 24px;
+        font-size: 28px;
         border-radius: 20px;
         border: 1px solid #ccc;
       }
@@ -55,14 +70,31 @@
         border: none;
         cursor: pointer;
       }
-      
+
       button:hover {
         background-color: #0066d6;
+      }
+
+      .save-btn {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        font-size: 14px;
+        color: #555;
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding: 6px 10px;
+        cursor: pointer;
+      }
+
+      .save-btn:hover {
+        background: rgba(255, 255, 255, 0.8);
       }
     </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root" class="container"></div>
 
     <script type="text/babel">
       function App() {
@@ -70,15 +102,44 @@
         const [name, setName] = React.useState("");
         const [time, setTime] = React.useState("");
 
+        // 全角→半角変換
+        const handleTimeChange = (e) => {
+          const value = e.target.value.replace(/[０-９．]/g, (s) =>
+            String.fromCharCode(s.charCodeAt(0) - 0xfee0)
+          );
+          setTime(value);
+        };
+
+        // 登録処理
         const addRecord = () => {
           if (!name || isNaN(parseFloat(time))) return;
-          const newRecords = [...records, { name, time: parseFloat(time) }];
-          newRecords.sort((a, b) => a.time - b.time);
+
+          const newRecord = {
+            name,
+            time: parseFloat(time),
+            date: new Date().toLocaleString("ja-JP"),
+          };
+
+          const newRecords = [...records, newRecord].sort((a, b) => a.time - b.time);
           setRecords(newRecords);
           setName("");
           setTime("");
         };
 
+        // CSV保存
+        const downloadCSV = () => {
+          const header = ["日時", "名前", "タイム(秒)"];
+          const rows = records.map((r) => [r.date, r.name, r.time.toFixed(2)]);
+          const csvContent = [header, ...rows].map((r) => r.join(",")).join("\n");
+          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "ranking_log.csv";
+          link.click();
+        };
+
+        // 平均・最高タイム
         const avg = records.length
           ? (records.reduce((sum, r) => sum + r.time, 0) / records.length).toFixed(2)
           : "-";
@@ -86,13 +147,19 @@
           ? Math.min(...records.map((r) => r.time)).toFixed(2)
           : "-";
 
+        // 常に5行表示
+        const visibleRecords = [...records.slice(0, 5)];
+        while (visibleRecords.length < 5) {
+          visibleRecords.push(null);
+        }
+
         return (
           <div className="card">
             <h2>🏁 Time Attack Ranking 🏁</h2>
-            <ul style={{ listStyle: "none", padding: 0 }}>
-              {records.slice(0, 5).map((r, i) => (
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {visibleRecords.map((r, i) => (
                 <li key={i}>
-                  {i + 1}位　{r.name}　{r.time.toFixed(2)}秒
+                  {i + 1}位　{r ? r.name : "---"}　{r ? r.time.toFixed(2) : "--.--"}秒
                 </li>
               ))}
             </ul>
@@ -105,13 +172,13 @@
               onChange={(e) => setName(e.target.value)}
             />
             <input
-              type="number"
-              step="0.01"
+              type="text"
               placeholder="タイム（秒）"
               value={time}
-              onChange={(e) => setTime(e.target.value)}
+              onChange={handleTimeChange}
             />
             <button onClick={addRecord}>登録</button>
+            <button className="save-btn" onClick={downloadCSV}>ログをCSVで保存</button>
           </div>
         );
       }
