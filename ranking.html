@@ -6,13 +6,13 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
+    
     <!-- Google Fonts -->
-    <link
+     <link 
       href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500&display=swap"
       rel="stylesheet"
-    />
-
+     />
+    
     <style>
       body {
         font-family: "M PLUS Rounded 1c", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
@@ -25,12 +25,12 @@
         overflow: hidden;
       }
 
-      .container {
+      .container{
         position: relative;
       }
 
       .card {
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255,255,255,0.9);
         padding: 80px;
         border-radius: 40px;
         box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
@@ -39,9 +39,16 @@
         text-align: center;
       }
 
-      h2 {
+      h2{
         font-size: 64px;
         margin-bottom: 50px;
+      }
+
+      ul{
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        min-height: 360px;/*ランキング5行分確保*/
       }
 
       li {
@@ -54,7 +61,7 @@
         margin: 30px 0;
       }
 
-      input,
+      input, 
       button {
         margin: 15px 0;
         padding: 20px;
@@ -70,11 +77,27 @@
         border: none;
         cursor: pointer;
       }
-
+      
       button:hover {
         background-color: #0066d6;
       }
 
+      /*  ログボタンを「気づかれないレベル」にする */
+      .save-btn {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        font-size: 10px;
+        color: rgba(0, 0, 0, 0.3);
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        border-radius: 6px;
+        padding: 2px 4px;
+        cursor: pointer;
+        opacity: 0.2;
+        transition: opacity 0.3s, background 0.3s;
+      }
+      /*
       .save-btn {
         position: absolute;
         bottom: 20px;
@@ -87,10 +110,13 @@
         padding: 6px 10px;
         cursor: pointer;
       }
+      */
 
-      .save-btn:hover {
-        background: rgba(255, 255, 255, 0.8);
+        .save-btn:hover {
+          opacity: 1;
+          background: rgba(255, 255, 255, 0.8);
       }
+
     </style>
   </head>
   <body>
@@ -102,15 +128,15 @@
         const [name, setName] = React.useState("");
         const [time, setTime] = React.useState("");
 
-        // 全角→半角変換
+      // 全角→半角変換
         const handleTimeChange = (e) => {
           const value = e.target.value.replace(/[０-９．]/g, (s) =>
             String.fromCharCode(s.charCodeAt(0) - 0xfee0)
           );
           setTime(value);
-        };
+        };  
 
-        // 登録処理
+      // 登録処理
         const addRecord = () => {
           if (!name || isNaN(parseFloat(time))) return;
 
@@ -119,12 +145,22 @@
             time: parseFloat(time),
             date: new Date().toLocaleString("ja-JP"),
           };
-
+          
           const newRecords = [...records, newRecord].sort((a, b) => a.time - b.time);
           setRecords(newRecords);
           setName("");
           setTime("");
-        };
+          };
+        
+      // レコード追加処理
+      //  const addRecords = () => {
+      //   if (!name || isNaN(parseFloat(time))) return;
+      //   const newRecords = [...records, { name, time: parseFloat(time) }];
+      //    newRecords.sort((a, b) => a.time - b.time);
+      //    setRecords(newRecords);
+      //    setName("");
+      //    setTime("");
+      //  };
 
         // CSV保存
         const downloadCSV = () => {
@@ -139,24 +175,25 @@
           link.click();
         };
 
-        // 平均・最高タイム
+      // 平均・最高タイム計算
         const avg = records.length
           ? (records.reduce((sum, r) => sum + r.time, 0) / records.length).toFixed(2)
           : "-";
         const best = records.length
           ? Math.min(...records.map((r) => r.time)).toFixed(2)
           : "-";
-
-        // 常に5行表示
+        
+      // 常に5行表示
         const visibleRecords = [...records.slice(0, 5)];
         while (visibleRecords.length < 5) {
           visibleRecords.push(null);
         }
-
-        return (
+ 
+          
+          return (
           <div className="card">
             <h2>🏁 Time Attack Ranking 🏁</h2>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            <ul>
               {visibleRecords.map((r, i) => (
                 <li key={i}>
                   {i + 1}位　{r ? r.name : "---"}　{r ? r.time.toFixed(2) : "--.--"}秒
