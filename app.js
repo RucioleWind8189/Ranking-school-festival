@@ -8,17 +8,33 @@ export default function RankingApp() {
   const nameRef = useRef(null);
   const timeRef = useRef(null);
 
-  const handleAdd = () => {
-    if (!name || !time) return;
-    const newRecord = { name, time: parseFloat(time) };
-    const updatedRecords = [...records, newRecord]
-      .sort((a, b) => a.time - b.time)
-      .slice(0, 5);
-    setRecords(updatedRecords);
-    setName("");
-    setTime("");
-    nameRef.current.focus();
-  };
+const handleAdd = () => {
+  // ① 新しいデータを追加（全員分保持）
+  const updatedAllPlayers = [...players, { name, time: parseFloat(time) }];
+  
+  // ② CSVとして追記出力
+  const csvContent = updatedAllPlayers
+    .map(p => `${p.name},${p.time}`)
+    .join("\n");
+  const blob = new Blob(["名前,タイム\n" + csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "time_attack_results.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+
+  // ③ 上位5人だけ画面に反映
+  const top5 = [...updatedAllPlayers]
+    .sort((a, b) => a.time - b.time)
+    .slice(0, 5);
+  setPlayers(top5);
+
+  setName("");
+  setTime("");
+};
+
 
   // 全角数字 → 半角
   const handleTimeChange = (e) => {
